@@ -81,6 +81,7 @@ function readServiceConfiguration {
 }
 
 function remoteCheckin {
+    COUNT_MD5_ERROR=0
     MD5_FLUSHDISK_SCRIPT=$(md5sum flushdisk.sh | cut -d " " -f1)
     for (( i = 0; i < ${#ARRAY_SERVICES[@]}; i++ )); do
         ITEM_SERVICE=$(basename "${ARRAY_SERVICES[$i]}" | sed -e 's/\_/\-/g' | cut -d "." -f1)
@@ -115,6 +116,7 @@ function remoteCheckin {
                     echo -ne "${OK}\n"
                 else
                     echo -ne "${ERROR} [${MD5_FLUSHDISK_SCRIPT} - ${MD5_FLUSHDISK_SCRIPT_REMOTE}]\n"
+                    COUNT_MD5_ERROR=1
                 fi
 
             fi
@@ -122,6 +124,13 @@ function remoteCheckin {
         fi
 
     done
+
+    if [[ "${COUNT_MD5_ERROR}" > 0 ]]
+    then
+        echo -ne "${ERROR} There is one or more flushdisk instance with wrong installation\n\n"
+    else
+        echo -ne "${BIGreen}Everything is fine !${COLOR_CLOSE} - MD5: ${MD5_FLUSHDISK_SCRIPT}\n\n"
+    fi
 }
 
 listConfigurations

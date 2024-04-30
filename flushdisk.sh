@@ -33,10 +33,10 @@ SHOW_DETAILS="false"
 MIN_FREE_DISK=2
 MAX_PERCENT_DISK=95
 MAX_SIZE_LOGS=200
-REMOTE_CONTROL=
+AUTOMATIC=
 
 function terminalPrint {
-    if [[ "${REMOTE_CONTROL}" == "false" || "$2" == "print" ]]
+    if [[ "${AUTOMATIC}" == "false" || "$2" == "print" ]]
     then
         echo -ne "\n$1"
     fi
@@ -67,7 +67,6 @@ function defineFlushdiskFinalPath {
 }
 
 function listConfigurationFiles {
-    defineFlushdiskFinalPath
     ARRAY_SERVICES=(${FLUSHDISK_PATH}/services-conf/*conf)
 }
 
@@ -214,9 +213,9 @@ function details {
 
         echo -e "${GREEN_TEXT_COLOR}[configuration]${COLOR_CLOSE}"
         echo "HD_TYPE: ${HD_TYPE}"
-        echo "MIN_FREE_DISK: ${MIN_FREE_DISK}G"
+        echo "MIN_FREE_DISK: ${MIN_FREE_DISK}GB"
         echo "MAX_PERCENT_DISK: ${MAX_PERCENT_DISK}%"
-        echo "MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}M"
+        echo "MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
 
         echo -e "${GREEN_TEXT_COLOR}[System]${COLOR_CLOSE}"
         echo "HD_SIZE: ${HD_SIZE_LITERAL}"
@@ -230,12 +229,10 @@ function details {
         read KEYBOARD
     fi
 
-    if [[ "${REMOTE_CONTROL}" == "false" ]]
+    if [[ "${AUTOMATIC}" == "false" ]]
     then
         echo -e "${IMPORTANT} Maybe you will be requested to inform the root password to continue this process !"
         echo -e "Press [Enter] to continue"
-        read ENTER
-        sudo ls * >> /dev/null 2>&1
     fi
 
 }
@@ -248,7 +245,7 @@ function readInitialConfiguration {
         MIN_FREE_DISK=$(egrep "MIN_FREE_DISK=" "${FLUSHDISK_PATH}/flushdisk.conf" | cut -d "=" -f2 | sed -e "s/[^0-9]//g")
         MAX_PERCENT_DISK=$(egrep "MAX_PERCENT_DISK=" "${FLUSHDISK_PATH}/flushdisk.conf" | cut -d "=" -f2 | sed -e "s/[^0-9]//g")
         MAX_SIZE_LOGS=$(egrep "MAX_SIZE_LOGS=" "${FLUSHDISK_PATH}/flushdisk.conf" | cut -d "=" -f2 | sed -e "s/[^0-9]//g")
-        REMOTE_CONTROL=$(egrep "REMOTE_CONTROL=" "${FLUSHDISK_PATH}/flushdisk.conf" | cut -d "=" -f2 | sed -e "s/[^a-z]//g")
+        AUTOMATIC=$(egrep "AUTOMATIC=" "${FLUSHDISK_PATH}/flushdisk.conf" | cut -d "=" -f2 | sed -e "s/[^a-z]//g")
     else
         ERROR_MSG="[START]: File not found ${FLUSHDISK_PATH}/flushdisk.conf"
         echo ""
@@ -301,7 +298,7 @@ function loadSystemInformation {
 }
 
 function defineCleanExecute {
-    if [[ "${HD_FREE}" -le "${MIN_FREE_DISK}" || "${HD_PERCENT}" -ge "${MAX_PERCENT_DISK}" || "${FORCE}" == "1" ]]; then
+    if [[ "${HD_FREE}" -le "${MIN_FREE_DISK}" || "${HD_PERCENT}" -ge "${MAX_PERCENT_DISK}" || ${FORCE} == 1 ]]; then
         terminalPrint "Flush Disk: Running !"
         details
         echo ""
@@ -311,6 +308,7 @@ function defineCleanExecute {
         terminalPrint "Flush Disk: Everything is ${OK} !"
         details
         terminalPrint "Flush Disk: Leaving..."
+        terminalPrint ""
         makeLog "info" "Flush Disk: Everything is OK !"
         exit
     fi
@@ -347,8 +345,8 @@ function checkGzLog {
             NUMERIC_SIZE=$(expr ${NUMERIC_SIZE} \* 1024) #Convert to MB
         fi
 
-		if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" ]]; then
-            INFO="LOGS_SIZE(GZ): ${NUMERIC_SIZE}MB, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
+		if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || ${FORCE} == 1 ]]; then
+            INFO="LOGS_SIZE(GZ): ${NUMERIC_SIZE}${SCALE_SIZE}B, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
             return 400
 		fi
 
@@ -380,8 +378,8 @@ function checkLog {
             NUMERIC_SIZE=$(expr ${NUMERIC_SIZE} \* 1024) #Convert to MB
         fi
 
-		if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" ]]; then
-            INFO="LOGS_SIZE: ${NUMERIC_SIZE}MB, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
+		if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || ${FORCE} == 1 ]]; then
+            INFO="LOGS_SIZE: ${NUMERIC_SIZE}${SCALE_SIZE}B, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
             return 400
 		fi
 
@@ -413,9 +411,9 @@ function clearGzLog {
             NUMERIC_SIZE=$(expr ${NUMERIC_SIZE} \* 1024) #Convert to MB
         fi
 
-        if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || "${FORCE}" == "1" ]]; then
+        if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || ${FORCE} == 1 ]]; then
 
-            MSG="LOGS_SIZE(GZ): ${NUMERIC_SIZE}MB, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
+            MSG="LOGS_SIZE(GZ): ${NUMERIC_SIZE}${SCALE_SIZE}B, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
 
             DATETIME=$(date +"%Y-%m-%d %T" | sed -e "s/[^0-9]//g")
             TAR_FILENAME="${DATETIME}-${LOG_NAME}-backup.log.gz.tar.gz"
@@ -431,7 +429,12 @@ function clearGzLog {
                 mv ${LOG_PATH}/${TAR_FILENAME} "${FLUSHDISK_PATH}/backup/" >> /dev/null 2>&1
                 rm -f ${LOG_PATH}/${LOG_NAME}*.log*.gz >> /dev/null 2>&1
 
-                makeLog "info" "${LOG_PATH}/ | ${MSG}"
+                if [[ ${FORCE} == 1 ]]
+                then
+                    makeLog "info" "${LOG_PATH}/ | ${MSG} - FORCE is on"
+                else
+                    makeLog "info" "${LOG_PATH}/ | ${MSG}"
+                fi
 
                 return 200
 
@@ -475,9 +478,9 @@ function clearLog {
             NUMERIC_SIZE=$(expr ${NUMERIC_SIZE} \* 1024) #Convert to MB
         fi
 
-        if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || "${FORCE}" == "1" ]]; then
+        if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || ${FORCE} == 1 ]]; then
 
-            MSG="LOGS_SIZE: ${NUMERIC_SIZE}MB, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
+            MSG="LOGS_SIZE: ${NUMERIC_SIZE}${SCALE_SIZE}B, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
 
             DATETIME=$(date +"%Y-%m-%d %T" | sed -e "s/[^0-9]//g")
             TAR_FILENAME="${DATETIME}-${LOG_NAME}-backup.log.tar.gz"
@@ -494,7 +497,12 @@ function clearLog {
                 rm -f ${LOG_PATH}/${LOG_NAME}-*.log >> /dev/null 2>&1
                 rm -f ${LOG_PATH}/${LOG_NAME}.*.log >> /dev/null 2>&1
 
-                makeLog "info" "${LOG_PATH}/ | ${MSG}"
+                if [[ ${FORCE} == 1 ]]
+                then
+                    makeLog "info" "${LOG_PATH}/ | ${MSG} - FORCE is on"
+                else
+                    makeLog "info" "${LOG_PATH}/ | ${MSG}"
+                fi
 
                 return 200
 
@@ -547,6 +555,8 @@ function clear {
 
         if [[ "${TARGET_SERVICE}" == "all" || "${ITEM_SERVICE}" == "${TARGET_SERVICE}" ]]
         then
+            makeLog "info" "${ITEM_SERVICE} is being flushing"
+
             readServiceConfiguration "${ITEM_SERVICE}"
 
             echo -ne "\nGZ Logs ${OPERATION} ${ITEM_SERVICE} - "
@@ -592,7 +602,18 @@ function flushdisk {
 	fi
 }
 
+defineFlushdiskFinalPath
 makeLog "start"
+
+if [[ "${TARGET_SERVICE}" == "" || "${TARGET_SERVICE}" == "check" || "${TARGET_SERVICE}" == "clear" || "${TARGET_SERVICE}" == "list" ]]
+then
+    errorStarting
+fi
+
+if [[ ${FORCE} != 1 && "${FORCE}" != 0 ]]
+then
+    FORCE=0
+fi
 
 if [[ "${CMD}" == "check" || "${CMD}" == "clear" || "${CMD}" == "list" ]]; then
     flushdisk ${CMD}

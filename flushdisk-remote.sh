@@ -30,7 +30,7 @@ function errorStarting {
     echo -e "${ERROR} Invalid parameter, use:"
     echo -e "./flushdisk-remote.sh [all,{SERVICE_NAME}] [clear, check] [{0,1}?] [{0,1}?]"
     echo -e "                       ^^^^^^^^^^^^^^^^^^   ^^^^^^^^^^^^   ^^^^^^   ^^^^^^"
-    echo -e "                           OPERATION           COMMAND    AUTOMATIC  FORCE"
+    echo -e "                             SERVICE           COMMAND    AUTOMATIC  FORCE"
     echo ""
     exit
 }
