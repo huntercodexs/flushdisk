@@ -1,0 +1,9 @@
+*.rar
+*.tar
+*.gz
+*.exe
+*.jar
+*.log
+/trash/
+/services-conf/*.conf
+/remote-services-conf/*.conf
