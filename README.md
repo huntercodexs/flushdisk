@@ -55,14 +55,355 @@ remote flushdisk, the following steps will be coming together:
 
 # Installing
 
+It's possible run many services as possible that you want to, just create a file configuration for each one 
+and is done, is pretty simple, is real fast, scalable and manageable.
+
 - Local
+
+To install the flushdisk in the local machine, and to run as a single instance, we can just clone the project from the 
+GitHub account https://github.com/huntercodexs/flushdisk.git and set all configurations, according the instructions bellow.
+
+### Clone Repository
+<pre>
+user@host:/home/user$ git clone https://github.com/huntercodexs/flushdisk.git .
+user@host:/home/user$ cd flushdisk
+</pre>
+
+### Prepare the Flushdisk Configuration File
+<pre>
+# [true, false] - use [false] for automatically process
+SHOW_DETAILS=true
+
+# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+HD_TYPE=nvme0n1p2
+
+# GB (giga bytes)
+MIN_FREE_DISK=3
+
+# % (in percent)
+MAX_PERCENT_DISK=70
+
+# MB (mega bytes)
+MAX_SIZE_LOGS=100
+
+# [true, false]
+AUTOMATIC=false
+</pre>
+
+### Prepare the Service Configuration File
+
+> TIP: You can use the template file disposable in the folder called template/
+ 
+<pre>
+# SPECIFIC SERVICE NAME: [SERVICE_NAME, TOMCAT, ETC..]
+# Warning: Don't use underscore character, use hyphen instead
+SERVICE={SERVICE_NAME_HERE}
+
+# LOG NAME - service_log_name
+LOG_NAME={LOG_NAME_HERE}
+
+# LOG PATH: /var/log/folder/service
+LOG_PATH={LOG_PATH_HERE}
+</pre>
+
+### Set the CRONTAB Linux
+
+This is a optional step, you can run the flushdisk manually whether you want to or needs, anyway follow one suggestion 
+to configure and run the flushdisk using a crontab linux.
+
+<pre>
+## Crontab
+##flushdisk: minute, hour, day, month, week_days, command
+#0 6 * * * ${FLUSHDISK_PATH}/flushdisk.sh [all, SERVICE_NAME] [clear, check] [{0, 1}?] [FLUSHDISK_PATH] > /dev/null 2>&1
+</pre>
+
+Where:
+<pre>
+- ${FLUSHDISK_PATH} is the path where flushdisk is installed.
+- [all, SERVICE_NAME] is a name for the service to cleaning the log path, "all" means every service and "SERVICE_NAME" a specific service.
+- [clear, check] is the command to operate in the flush disk, "clear" is used to effectively apply the clean and "check" is used for only verify the health of log path and hard disk space.
+- [{0, 1}] is an argument to say if flushdisk should be run in the FORCE mode or not
+- [FLUSHDISK_PATH] this parameter is used only when the remote flushdisk is running - to overwrite a FLUSHDISK_PATH
+</pre>
+
 - Remote
+
+If the environment requires a remote flushdisk manager, you can follow the steps below:
+
+### Clone Repository
+<pre>
+user@host:/home/user$ git clone https://github.com/huntercodexs/flushdisk.git .
+user@host:/home/user$ cd flushdisk
+</pre>
+
+### Prepare the Flushdisk Configuration File
+<pre>
+# [true, false] - use [false] for automatically process
+SHOW_DETAILS=true
+
+# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+HD_TYPE=nvme0n1p2
+
+# GB (giga bytes)
+MIN_FREE_DISK=3
+
+# % (in percent)
+MAX_PERCENT_DISK=70
+
+# MB (mega bytes)
+MAX_SIZE_LOGS=100
+
+# [true, false]
+AUTOMATIC=false
+</pre>
+
+### Prepare the Service Configuration File
+
+> TIP: You can use the template file disposable in the folder called template/
+
+<pre>
+# SPECIFIC SERVICE NAME: [SERVICE_NAME, TOMCAT, ETC..]
+# Warning: Don't use underscore character, use hyphen instead
+SERVICE={SERVICE_NAME_HERE}
+
+# LOG NAME - service_log_name
+LOG_NAME={LOG_NAME_HERE}
+
+# LOG PATH: /var/log/folder/service
+LOG_PATH={LOG_PATH_HERE}
+</pre>
+
+### Prepare the Remote Service Configuration File
+
+> TIP: You can use the template file disposable in the folder called template/
+
+<pre>
+# service name
+# Warning: Don't use underscore character, use hiffen instead
+SERVICE={SERVICE_NAME_HERE}
+
+# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+HD_TYPE={HD_TYPE_HERE}
+
+# false, true
+SSH_USE_SUDO={SSH_USE_SUDO_HERE}
+
+# username ssh
+SSH_USERNAME={SSH_USERNAME_HERE}
+
+# ssh ip target
+SSH_HOST_ADDRESS={SSH_HOST_ADDRESS_HERE}
+
+# ssh key
+# examples: /home/user/ssh-key/keyname.pem, /home/user/ssh-key/keyname.ppk
+# important: let empty if you are using the RSA public key
+SSH_PUB_KEY={SSH_PUB_KEY_HERE}
+
+# local path logs (remote)
+FLUSHDISK_REMOTE_DIRECTORY={FLUSHDISK_REMOTE_DIRECTORY_HERE}
+</pre>
+
+### Deploy the flushdisk in the target remote machines
+
+Use the script flushdisk-remote-deploy.sh to delivery the flushdisk and configurations for the target machines
+
+<pre>
+./flushdisk-remote-deploy.sh [all, {SERVICE_NAME}]
+</pre>
+
+Where:
+<pre>
+- [all, {SERVICE_NAME}] is a name for the service to cleaning the log path, "all" means every service and "SERVICE_NAME" a specific service.
+</pre>
+
+### Turn on the remote flushdisk
+
+To turn on the remote flushdisk in the machine that will be access the remote flushdisk machines you can use the crontab 
+linux according the example below (flushdisk-remote.sh):
+
+<pre>
+## Crontab
+##flushdisk: minute, hour, day, month, week_days, command
+##GMT(-03:00)
+#0 9 * * * ${FLUSHDISK_PATH}/flushdisk-remote.sh [all,{SERVICE_NAME}] [clear, check] [{0,1}?] [{0,1}?] > /dev/null 2>&1
+</pre>
+
+Where:
+<pre>
+- ${FLUSHDISK_PATH} is the path where flushdisk is installed.
+- [all, SERVICE_NAME] is a name for the service to cleaning the log path, "all" means every service and "SERVICE_NAME" a specific service.
+- [clear, check] is the command to operate in the flush disk, "clear" is used to effectively apply the clean and "check" is used for only verify the health of log path and hard disk space.
+- [{0, 1}] is an argument to say if flushdisk is running by automatic or manual process
+- [{0, 1}] is an argument to say if flushdisk should be run in the FORCE mode or not
+</pre>
+
+### Extras
+
+The remote flushdisk still offer others scripts to help management and handling of the flushdisk installation and logs,
+like we can see below its possible to check the installation, remove an installation and deploy where the last one was 
+already explained above.
+
+<pre>
+flushdisk-remote-checkin.sh
+flushdisk-remote-remove.sh
+flushdisk-remote-deploy.sh
+</pre>
+
+The flushdisk-remote-checkin.sh should be used to check if the installation was installed correctly. It checks the md5 
+hash and integrity directory path where the flushdisk was installed in the remote machine.
+
+To use it you need execute the following command:
+<pre>
+./flushdisk-remote-checkin.sh [all, {SERVICE_NAME}]
+</pre>
+
+The flushdisk-remote-remove.sh can be used to remove safely and totally one flushdisk installation, but pay attention 
+the flushdisk don't remove the log files and also the configuration files.
+
+> IMPORTANT: Don't forget to remove the flushdisk.sh and flushdisk-remote.sh from the linux crontab.
+
+<pre>
+./flushdisk-remote-remove.sh [all, {SERVICE_NAME}]
+</pre>
 
 # Configuration
 
-- Flushdisk Config
-- Services Config
-- Remote Flushdisk Services Config
+### Flushdisk Config
+
+In this top we will learn how to configure the flushdisk.conf file placed in the flushdisk path folder. This file is 
+used by flushdisk to get details about the system where it will be run to manger and clean the log path. Blow we can 
+see this file with a small comments about each field present in it.
+
+###### SHOW_DETAILS
+<pre>
+# [true, false] - use [false] for automatically process
+SHOW_DETAILS=true
+</pre>
+
+This field should be used to allow or not the details collected by flushdisk at the moment when it is running, and will 
+be result in anything like the image below:
+
+![show-details.png](documents/midias/show-details.png)
+
+We can see all information about the current operating system with respect to the hardware in this case the hard disk, 
+also the configuration about what we can apply in that machine. ***It's pretty simple !***
+
+###### HD_TYPE
+<pre>
+# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+HD_TYPE=nvme0n1p2
+</pre>
+
+In this field we say which type is the hard disk in the current machine and to discovery that information you can easily 
+execute the following command
+
+<pre>
+df -h | grep -E '(Ava|nvme|xvda|sata|Usad|Used)'
+</pre>
+
+###### MIN_FREE_DISK
+<pre>
+# GB (giga bytes)
+MIN_FREE_DISK=3
+</pre>
+
+This field means how space in gigabytes should be keeping in the current hard disk
+
+###### MAX_PERCENT_DISK
+<pre>
+# % (in percent)
+MAX_PERCENT_DISK=70
+</pre>
+
+This field means how space in percent should be keep in the current hard disk
+
+###### MAX_SIZE_LOGS
+<pre>
+# MB (mega bytes)
+MAX_SIZE_LOGS=100
+</pre>
+
+With this field we can control the log path in any service running in the current machine. In this case when you set up 
+this field with a correct value in megabytes and execute the flushdisk with a FORCE mode (argument=1); the flushdisk 
+will ignore the value in this field and execute the compact and clean in the log path folder.
+
+###### AUTOMATIC
+<pre>
+# [true, false]
+AUTOMATIC=false
+</pre>
+
+When used as true value in this field it means that the process execution should execute automatically without break or 
+stops, by example the "read" command to get the system input data. Keep in mind that this field AUTOMATIC=true is 
+required when flushdisk is running vi linux crontab or another automatic jog runner. 
+
+### Services Config
+
+###### SERVICE
+<pre>
+# SPECIFIC SERVICE NAME: [SERVICE_NAME, TOMCAT, ETC..]
+# Warning: Don't use underscore character, use hyphen instead
+SERVICE={SERVICE_NAME_HERE}
+</pre>
+
+###### LOG_NAME
+<pre>
+# LOG NAME - service_log_name
+LOG_NAME={LOG_NAME_HERE}
+</pre>
+
+###### LOG_PATH
+<pre>
+# LOG PATH: /var/log/folder/service
+LOG_PATH={LOG_PATH_HERE}
+</pre>
+
+### Remote Flushdisk Services Config
+
+###### SERVICE
+<pre>
+# service name
+# Warning: Don't use underscore character, use hiffen instead
+SERVICE={SERVICE_NAME_HERE}
+</pre>
+
+###### HD_TYPE
+<pre>
+# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+HD_TYPE={HD_TYPE_HERE}
+</pre>
+
+###### SSH_USE_SUDO
+<pre>
+# false, true
+SSH_USE_SUDO={SSH_USE_SUDO_HERE}
+</pre>
+
+###### SSH_USERNAME
+<pre>
+# username ssh
+SSH_USERNAME={SSH_USERNAME_HERE}
+</pre>
+
+###### SSH_HOST_ADDRESS
+<pre>
+# ssh ip target
+SSH_HOST_ADDRESS={SSH_HOST_ADDRESS_HERE}
+</pre>
+
+###### SSH_PUB_KEY
+<pre>
+# ssh key
+# examples: /home/user/ssh-key/keyname.pem, /home/user/ssh-key/keyname.ppk
+# important: let empty if you are using the RSA public key
+SSH_PUB_KEY={SSH_PUB_KEY_HERE}
+</pre>
+
+###### FLUSHDISK_REMOTE_DIRECTORY
+<pre>
+# local path logs (remote)
+FLUSHDISK_REMOTE_DIRECTORY={FLUSHDISK_REMOTE_DIRECTORY_HERE}
+</pre>
 
 # Use Cases
 
@@ -87,3 +428,4 @@ remote flushdisk, the following steps will be coming together:
 ![remote-flushdisk-N-1.png](documents/midias/remote-flushdisk-N-1.png)
 
 - Use Case: Remote Flushdisk N:N (Many Machine for Many Services)
+

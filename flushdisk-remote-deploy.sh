@@ -1,9 +1,7 @@
 #!/bin/bash
 
-# STEP BY STEP
-# 1. INSTALL THE FLUSHDISK BY: ./flushdisk-remote-deploy.sh "all"
-# 	1.2 This script will be prepare and istall the flushdisk.sh and flushdisk.conf in each machine
-# 2. EXECUTE THE FLUSHDISK BY: ./flushdisk-remote.sh "clear"
+#How to use:
+#./flushdisk-remote-deploy.sh [all, {SERVICE_NAME}]
 
 # Edit this variable before running the flushdisk
 FLUSHDISK_PATH=$(echo $PWD)

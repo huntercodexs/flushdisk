@@ -211,7 +211,7 @@ function details {
         echo ""
         echo -e "${YELLOW_TEXT_COLOR}--------- DETAILS ---------${COLOR_CLOSE}"
 
-        echo -e "${GREEN_TEXT_COLOR}[configuration]${COLOR_CLOSE}"
+        echo -e "${GREEN_TEXT_COLOR}[Configuration]${COLOR_CLOSE}"
         echo "HD_TYPE: ${HD_TYPE}"
         echo "MIN_FREE_DISK: ${MIN_FREE_DISK}GB"
         echo "MAX_PERCENT_DISK: ${MAX_PERCENT_DISK}%"
