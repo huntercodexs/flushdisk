@@ -21,16 +21,25 @@ correctly, so have a caution when you are install the flushdisk locally because 
 
 ### Hard Disk Space saved
 
-![hard-disk.png](documents/midias/hard-disk.png)
-
-For exemplify how much is the gain of the disk space, let us calculate the percentage. Suppose that a log path directory 
-have a 112MB, and the flushdisk is configured for running in the 100MB, so it will be running and compact the logs in 
-a tar.gz file saving 95% of disk.
-
-<pre>
-112MB - txt log files
-5MB - tar.gz log files (95% percent of saving disk space)
-</pre>
+<table>
+    <tr>
+        <td>
+            <img src="documents/midias/hard-disk.png"  alt=""/>
+        </td>
+        <td>
+            For exemplify how much is the gain of the disk space, let us calculate the percentage. Suppose that a log 
+            path directory have a 112MB, and the flushdisk is configured for running in the 100MB, so it will be 
+            running and compact the logs in a tar.gz file saving 95% of disk.
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            112MB - txt log files
+            <br />
+            5MB - tar.gz log files (95% percent of saving disk space)
+        </td>
+    </tr>
+</table>
 
 ### Super User - SUDO
 
