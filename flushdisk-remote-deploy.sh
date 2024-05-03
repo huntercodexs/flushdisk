@@ -43,7 +43,7 @@ function readServiceConfiguration {
         SSH_USE_SUDO=$(egrep "SSH_USE_SUDO=" "${CURRENT_FILE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^a-z]//g")
         SSH_USERNAME=$(egrep "SSH_USERNAME=" "${CURRENT_FILE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9a-zA-Z\_\/\-]//g")
         SSH_HOST_ADDRESS=$(egrep "SSH_HOST_ADDRESS=" "${CURRENT_FILE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9\.]//g")
-        SSH_PUB_KEY=$(egrep "SSH_PUB_KEY=" "${CURRENT_FILE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9a-zA-Z\_\/\-]//g")
+        SSH_PUB_KEY=$(egrep "SSH_PUB_KEY=" "${CURRENT_FILE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9a-zA-Z\_\/\.\-]//g")
         FLUSHDISK_REMOTE_DIRECTORY=$(egrep "FLUSHDISK_REMOTE_DIRECTORY=" "${CURRENT_FILE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9a-zA-Z\_\/\-]//g")
 
         if [[ "${SERVICE}" == "" ]]; then
