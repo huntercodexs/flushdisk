@@ -346,17 +346,23 @@ required when flushdisk is running vi linux crontab or another automatic jog run
 SERVICE={SERVICE_NAME_HERE}
 </pre>
 
+This field  specify the service name that refer to this configuration
+
 ###### LOG_NAME
 <pre>
 # LOG NAME - service_log_name
 LOG_NAME={LOG_NAME_HERE}
 </pre>
 
+The name of the log name that will be managed by flushdisk and will generate by the current target service
+
 ###### LOG_PATH
 <pre>
 # LOG PATH: /var/log/folder/service
 LOG_PATH={LOG_PATH_HERE}
 </pre>
+
+This field is used to say where is the log files of the current service
 
 ### Remote Flushdisk Services Config
 
@@ -373,11 +379,16 @@ SERVICE={SERVICE_NAME_HERE}
 HD_TYPE={HD_TYPE_HERE}
 </pre>
 
+This field  specify the service name that refer to this configuration
+
 ###### SSH_USE_SUDO
 <pre>
 # false, true
 SSH_USE_SUDO={SSH_USE_SUDO_HERE}
 </pre>
+
+This field means if it should be used "sudo" or not in the ssh connection, pay attention with this setting because it 
+can be exposing the service or environment to invasion or another types of secure fail issues.
 
 ###### SSH_USERNAME
 <pre>
@@ -385,11 +396,15 @@ SSH_USE_SUDO={SSH_USE_SUDO_HERE}
 SSH_USERNAME={SSH_USERNAME_HERE}
 </pre>
 
+Use this field to set ssh username which will be used to connect in the remote machine where flushdisk is running
+
 ###### SSH_HOST_ADDRESS
 <pre>
 # ssh ip target
 SSH_HOST_ADDRESS={SSH_HOST_ADDRESS_HERE}
 </pre>
+
+This field inform the IP or hostname address where the remote flushdisk should be to connect via ssh connection.
 
 ###### SSH_PUB_KEY
 <pre>
@@ -399,33 +414,67 @@ SSH_HOST_ADDRESS={SSH_HOST_ADDRESS_HERE}
 SSH_PUB_KEY={SSH_PUB_KEY_HERE}
 </pre>
 
+Here is the most one important field, with it, you say that the remote flushdisk must use a public key ssh like the RSA key 
+or another key like PEM or PPK. Normally when we run the ssh connection it is not necessary, but in the environment with 
+a strong secure and an infrastructure closed, it can be easily required, by example:
+
+<pre>
+ssh -i /home/user/key/my-key.pem user@address:/home/user
+sudo ssh -i /home/user/key/my-key.pem user@address:/home/user
+</pre>
+
 ###### FLUSHDISK_REMOTE_DIRECTORY
 <pre>
 # local path logs (remote)
 FLUSHDISK_REMOTE_DIRECTORY={FLUSHDISK_REMOTE_DIRECTORY_HERE}
 </pre>
 
+When the remote flushdisk is running this field have a correct path to flushdisk execute the clean and compact, it will 
+be used by argument 4 (FLUSHDISK_PATH_REMOTE) in the flushdisk.sh execution, by example:
+
+<pre>
+./flushdisk.sh all clear 1 /home/user/codexstools/flushdisk
+</pre>
+
+The parameter 4 (/home/user/codexstools/flushdisk) says that the current remote flushdisk is installed in this path 
+and the flushdisk path will be replaced it, explaining:
+
+<pre>
+flushdisk.sh is running -> FLUSHDISK_PATH=/home/user
+flushdisk.sh is running -> FLUSHDISK_PATH_REMOTE=/home/user/codexstools/flushdisk
+flushdisk.sh is running -> FLUSHDISK_PATH=FLUSHDISK_PATH_REMOTE
+</pre>
+
+In the explanation above the path that will be to consider by flushdisk is /home/user/codexstools/flushdisk
+
 # Use Cases
 
-- Use Case: Flushdisk 1:1 (One Machine for One Service)
+###### Use Case: Flushdisk 1:1 (One Machine for One Service)
 
+The use case above show us how to work the flushdisk in a simple situation, one machine for one service
 ![flushdisk-1-1.png](documents/midias/flushdisk-1-1.png)
 
-- Use Case: Flushdisk 1:N (One Machine for Many Services)
+###### Use Case: Flushdisk 1:N (One Machine for Many Services)
 
+When we have a situation with a bit more complex case, with many services running in the same machine
 ![flushdisk-1-N.png](documents/midias/flushdisk-1-N.png)
 
-- Use Case: Remote Flushdisk 1:1 (One Machine for One Service) 
-
+###### Use Case: Remote Flushdisk 1:1 (One Machine for One Service) 
+ 
+The remote flushdisk using a flushdisk 1:1
 ![remote-flushdisk-1-1.png](documents/midias/remote-flushdisk-1-1.png)
 
-- Use Case: Remote Flushdisk 1:N
+###### Use Case: Remote Flushdisk 1:N
 
+The remote flushdisk using a flushdisk 1:N
 ![remote-flushdisk-1-N.png](documents/midias/remote-flushdisk-1-N.png)
 
-- Use Case: Remote Flushdisk N:1 (Many Machines for One Service)
+###### Use Case: Remote Flushdisk N:1 (Many Machines for One Service)
 
+The remote flushdisk using a flushdisk N:1
 ![remote-flushdisk-N-1.png](documents/midias/remote-flushdisk-N-1.png)
 
-- Use Case: Remote Flushdisk N:N (Many Machine for Many Services)
+###### Use Case: Remote Flushdisk N:N (Many Machine for Many Services)
 
+The remote flushdisk using a flushdisk N:N
+![remote-flushdisk-N-N.png](documents/midias/remote-flushdisk-N-N.png)
