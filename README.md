@@ -105,7 +105,7 @@ user@host:/home/user$ cd flushdisk
 # [true, false] - use [false] for automatically process
 SHOW_DETAILS=true
 
-# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+# [sdb, sda, nvme, nvme0n1p1, nvme0n1p2, xvda]
 HD_TYPE=nvme0n1p2
 
 # GB (giga bytes)
@@ -172,7 +172,7 @@ user@host:/home/user$ cd flushdisk
 # [true, false] - use [false] for automatically process
 SHOW_DETAILS=true
 
-# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+# [sdb, sda, nvme, nvme0n1p1, nvme0n1p2, xvda]
 HD_TYPE=nvme0n1p2
 
 # GB (giga bytes)
@@ -213,7 +213,7 @@ LOG_PATH={LOG_PATH_HERE}
 # Warning: Don't use underscore character, use hyphen instead
 SERVICE={SERVICE_NAME_HERE}
 
-# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+# [sdb, sda, nvme, nvme0n1p1, nvme0n1p2, xvda]
 HD_TYPE={HD_TYPE_HERE}
 
 # false, true
@@ -321,7 +321,7 @@ also the configuration about what we can apply in that machine. ***It's pretty s
 
 ###### HD_TYPE
 <pre>
-# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+# [sdb, sda, nvme, nvme0n1p1, nvme0n1p2, xvda]
 HD_TYPE=nvme0n1p2
 </pre>
 
@@ -406,7 +406,7 @@ SERVICE={SERVICE_NAME_HERE}
 
 ###### HD_TYPE
 <pre>
-# [nvme, nvme0n1p1, nvme0n1p2, xvda]
+# [sdb, sda, nvme, nvme0n1p1, nvme0n1p2, xvda]
 HD_TYPE={HD_TYPE_HERE}
 </pre>
 
