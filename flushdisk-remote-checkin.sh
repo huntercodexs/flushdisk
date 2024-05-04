@@ -127,9 +127,9 @@ function remoteCheckin {
 
     if [[ "${COUNT_MD5_ERROR}" > 0 ]]
     then
-        echo -ne "${ERROR} There is one or more flushdisk instance with wrong installation\n\n"
+        echo -ne "\n${ERROR} There is one or more flushdisk instance with wrong installation\n\n"
     else
-        echo -ne "${BIGreen}Everything is fine !${COLOR_CLOSE} - MD5: ${MD5_FLUSHDISK_SCRIPT}\n\n"
+        echo -ne "\n${BIGreen}Everything is fine !${COLOR_CLOSE} - MD5: ${MD5_FLUSHDISK_SCRIPT}\n\n"
     fi
 }
 
