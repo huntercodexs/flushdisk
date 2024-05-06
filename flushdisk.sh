@@ -2,12 +2,12 @@
 
 ## Crontab
 ##flushdisk: minute, hour, day, month, week_days, command
-#0 6 * * * ${FLUSHDISK_PATH}/flushdisk.sh [all, SERVICE_NAME] [clear, check] [{0, 1}?] [FLUSHDISK_PATH] > /dev/null 2>&1
+#0 6 * * * ${FLUSHDISK_PATH}/flushdisk.sh [all, SERVICE_NAME] [clear, check] [{0, 1}?] [FLUSHDISK_PATH_OVERWRITE] > /dev/null 2>&1
 
 TARGET_SERVICE=$1
 CMD=$2
 FORCE=$3 #force flushdisk to clean up the log path
-FLUSHDISK_PATH_REMOTE=$4
+FLUSHDISK_PATH_OVERWRITE=$4
 
 HD_SIZE=0
 HD_USED=0
@@ -57,9 +57,9 @@ function loadSystemColors {
 
 function defineFlushdiskFinalPath {
     FLUSHDISK_PATH=$(echo $PWD)
-    if [[ "${FLUSHDISK_PATH_REMOTE}" != "" ]]
+    if [[ "${FLUSHDISK_PATH_OVERWRITE}" != "" ]]
     then
-        FLUSHDISK_PATH=${FLUSHDISK_PATH_REMOTE}
+        FLUSHDISK_PATH=${FLUSHDISK_PATH_OVERWRITE}
     fi
     loadSystemColors
 }
