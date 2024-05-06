@@ -3,15 +3,13 @@
 ## Crontab
 ##flushdisk: minute, hour, day, month, week_days, command
 ##GMT(-03:00)
-#0 9 * * * ${FLUSHDISK_PATH}/flushdisk-remote.sh [all,{SERVICE_NAME}] [clear, check] [{0,1}?] [{0,1}?] > /dev/null 2>&1
-
-# Edit this variable before running the flushdisk
-FLUSHDISK_PATH=$(echo $PWD)
+#0 9 * * * ${FLUSHDISK_PATH}/flushdisk-remote.sh [all,{SERVICE_NAME}] [clear, check] [{0,1}?] [{0,1}?] [${FLUSHDISK_PATH_OVERWRITE}] > /dev/null 2>&1
 
 OPERATION=$1
 COMMAND=$2
 AUTOMATIC=$3
 FORCE=$4
+FLUSHDISK_PATH_OVERWRITE=$5
 
 SERVICE=
 SSH_USERNAME=
@@ -21,11 +19,19 @@ FLUSHDISK_REMOTE_DIRECTORY=
 TIMER_IN_SECONDS=1
 
 function loadSystemColors {
-    source flushdisk-system-colors.sh
+    source "${FLUSHDISK_PATH}/flushdisk-system-colors.sh"
+}
+
+function defineFlushdiskRemoteFinalPath {
+    FLUSHDISK_PATH=$(echo $PWD)
+    if [[ "${FLUSHDISK_PATH_OVERWRITE}" != "" ]]
+    then
+        FLUSHDISK_PATH=${FLUSHDISK_PATH_OVERWRITE}
+    fi
+    loadSystemColors
 }
 
 function errorStarting {
-    loadSystemColors
     echo ""
     echo -e "${ERROR} Invalid parameter, use:"
     echo -e "./flushdisk-remote.sh [all,{SERVICE_NAME}] [clear, check] [{0,1}?] [{0,1}?]"
@@ -190,6 +196,8 @@ function remoteFlushdisk {
     done
 }
 
+defineFlushdiskRemoteFinalPath
+
 if [[ "${OPERATION}" == "" || "${COMMAND}" == "" || "${AUTOMATIC}" == "" || "${FORCE}" == "" ]]
 then
     errorStarting
@@ -201,7 +209,6 @@ then
 fi
 
 makeLog "start"
-loadSystemColors
 listConfigurations
 createDirs
 remoteFlushdisk

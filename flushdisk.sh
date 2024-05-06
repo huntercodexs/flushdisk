@@ -4,9 +4,6 @@
 ##flushdisk: minute, hour, day, month, week_days, command
 #0 6 * * * ${FLUSHDISK_PATH}/flushdisk.sh [all, SERVICE_NAME] [clear, check] [{0, 1}?] [FLUSHDISK_PATH] > /dev/null 2>&1
 
-# Edit this variable before running the flushdisk
-FLUSHDISK_PATH=$(echo $PWD)
-
 TARGET_SERVICE=$1
 CMD=$2
 FORCE=$3 #force flushdisk to clean up the log path
@@ -59,6 +56,7 @@ function loadSystemColors {
 }
 
 function defineFlushdiskFinalPath {
+    FLUSHDISK_PATH=$(echo $PWD)
     if [[ "${FLUSHDISK_PATH_REMOTE}" != "" ]]
     then
         FLUSHDISK_PATH=${FLUSHDISK_PATH_REMOTE}
