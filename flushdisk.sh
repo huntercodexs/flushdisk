@@ -25,6 +25,8 @@ SERVICE=
 LOG_NAME=
 LOG_PATH=
 TOMCAT_PATH=
+USE_SUDO=
+
 HD_TYPE="nvme"
 SHOW_DETAILS="false"
 MIN_FREE_DISK=2
@@ -268,6 +270,7 @@ function readServiceConfiguration {
         LOG_NAME=$(egrep "LOG_NAME=" "${SERVICE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9a-zA-Z\_\/\-]//g")
         LOG_PATH=$(egrep "LOG_PATH=" "${SERVICE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9a-zA-Z\_\/\-]//g")
         TOMCAT_PATH=$(egrep "TOMCAT_PATH=" "${SERVICE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^0-9a-zA-Z\_\/\-]//g")
+        USE_SUDO=$(egrep "USE_SUDO=" "${SERVICE_CONFIG}" | cut -d "=" -f2 | sed -e "s/[^a-z]//g")
 
         if [[ "${SERVICE}" == "" ]]; then
             ERROR_MSG="Service Name is undefined in the configuration file ${SERVICE_CONFIG}"
@@ -456,6 +459,73 @@ function clearGzLog {
     fi
 }
 
+function clearGzLogSudo {
+
+    if [[ ${CLEAN_EXECUTE} == 0 ]]; then
+        return 200
+    fi
+
+    if ls ${LOG_PATH}/${LOG_NAME}*.gz >> /dev/null 2>&1
+    then
+
+        cd ${LOG_PATH}/ >> /dev/null 2>&1
+
+        LOGS_AMOUNT=$(du -csh ${LOG_PATH}/${LOG_NAME}*.gz | tail -1)
+        NUMERIC_SIZE=$(echo ${LOGS_AMOUNT} | sed -e "s/\.[0-9]//g" | sed -e "s/[^0-9]//g")
+        SCALE_SIZE=$(echo ${LOGS_AMOUNT} | sed -e "s/[^KMG]//g")
+
+        if [[ "${SCALE_SIZE}" == "G" ]] #Giga Byte
+        then
+            NUMERIC_SIZE=$(expr ${NUMERIC_SIZE} \* 1024) #Convert to MB
+        fi
+
+        if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || ${FORCE} == 1 ]]; then
+
+            MSG="LOGS_SIZE(GZ): ${NUMERIC_SIZE}${SCALE_SIZE}B, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
+
+            DATETIME=$(date +"%Y-%m-%d %T" | sed -e "s/[^0-9]//g")
+            TAR_FILENAME="${DATETIME}-${LOG_NAME}-backup.log.gz.tar.gz"
+            sudo tar -czf ${TAR_FILENAME} ${LOG_NAME}*.gz >> /dev/null 2>&1
+            R_TAR=$?
+
+            sudo ls ${LOG_PATH}/${TAR_FILENAME} >> /dev/null 2>&1
+            R_LIST=$?
+
+            if [[ ${R_TAR} == 0 || ${R_LIST} == 0 ]]; then
+
+                cd - >> /dev/null 2>&1
+                sudo mv ${LOG_PATH}/${TAR_FILENAME} "${FLUSHDISK_PATH}/backup/" >> /dev/null 2>&1
+                sudo rm -f ${LOG_PATH}/${LOG_NAME}*.log*.gz >> /dev/null 2>&1
+
+                if [[ ${FORCE} == 1 ]]
+                then
+                    makeLog "info" "${LOG_PATH}/ | ${MSG} - FORCE is on"
+                else
+                    makeLog "info" "${LOG_PATH}/ | ${MSG}"
+                fi
+
+                return 200
+
+            else
+
+                cd - >> /dev/null 2>&1
+                INFO="(GZ Files) Something went wrong during the flushdisk"
+                makeLog "error" "(GZ Files) Something went wrong during the flushdisk: ${R_TAR}, ${R_LIST}"
+
+                return 500
+
+            fi
+
+        fi
+
+        cd - >> /dev/null 2>&1
+        return 200
+
+    else
+        return 404
+    fi
+}
+
 function clearLog {
 
     if [[ ${CLEAN_EXECUTE} == 0 ]]; then
@@ -524,6 +594,74 @@ function clearLog {
     fi
 }
 
+function clearLogSudo {
+
+    if [[ ${CLEAN_EXECUTE} == 0 ]]; then
+        return 200
+    fi
+
+    if ls ${LOG_PATH}/${LOG_NAME}*.log >> /dev/null 2>&1
+    then
+
+        cd ${LOG_PATH}/ >> /dev/null 2>&1
+
+        LOGS_AMOUNT=$(du -csh ${LOG_PATH}/${LOG_NAME}*.log | tail -1)
+        NUMERIC_SIZE=$(echo ${LOGS_AMOUNT} | sed -e "s/\.[0-9]//g" | sed -e "s/[^0-9]//g")
+        SCALE_SIZE=$(echo ${LOGS_AMOUNT} | sed -e "s/[^KMG]//g")
+
+        if [[ "${SCALE_SIZE}" == "G" ]] #Giga Byte
+        then
+            NUMERIC_SIZE=$(expr ${NUMERIC_SIZE} \* 1024) #Convert to MB
+        fi
+
+        if [[ "${NUMERIC_SIZE}" -gt "${MAX_SIZE_LOGS}" && "${SCALE_SIZE}" != "K" || ${FORCE} == 1 ]]; then
+
+            MSG="LOGS_SIZE: ${NUMERIC_SIZE}${SCALE_SIZE}B, MAX_SIZE_LOGS: ${MAX_SIZE_LOGS}MB"
+
+            DATETIME=$(date +"%Y-%m-%d %T" | sed -e "s/[^0-9]//g")
+            TAR_FILENAME="${DATETIME}-${LOG_NAME}-backup.log.tar.gz"
+            sudo tar -czf ${TAR_FILENAME} ${LOG_NAME}*.log >> /dev/null 2>&1
+            R_TAR=$?
+
+            sudo ls ${LOG_PATH}/${TAR_FILENAME} >> /dev/null 2>&1
+            R_LIST=$?
+
+            if [[ ${R_TAR} == 0 || ${R_LIST} == 0 ]]; then
+
+                cd - >> /dev/null 2>&1
+                sudo mv ${LOG_PATH}/${TAR_FILENAME} "${FLUSHDISK_PATH}/backup/" >> /dev/null 2>&1
+                sudo rm -f ${LOG_PATH}/${LOG_NAME}-*.log >> /dev/null 2>&1
+                sudo rm -f ${LOG_PATH}/${LOG_NAME}.*.log >> /dev/null 2>&1
+
+                if [[ ${FORCE} == 1 ]]
+                then
+                    makeLog "info" "${LOG_PATH}/ | ${MSG} - FORCE is on"
+                else
+                    makeLog "info" "${LOG_PATH}/ | ${MSG}"
+                fi
+
+                return 200
+
+            else
+
+                cd - >> /dev/null 2>&1
+                INFO="Something went wrong during the flushdisk"
+                makeLog "error" "Something went wrong during the flushdisk: ${R_TAR}, ${R_LIST}"
+
+                return 500
+
+            fi
+
+        fi
+
+        cd - >> /dev/null 2>&1
+        return 200
+
+    else
+        return 404
+    fi
+}
+
 function check {
     for (( i = 0; i < ${#ARRAY_SERVICES[@]}; i++ )); do
         ITEM_SERVICE=$(basename "${ARRAY_SERVICES[$i]}" | sed -e 's/\_/\-/g' | cut -d "." -f1)
@@ -557,17 +695,32 @@ function clear {
 
             readServiceConfiguration "${ITEM_SERVICE}"
 
-            echo -ne "\nGZ Logs ${OPERATION} ${ITEM_SERVICE} - "
-            clearGzLog "${ITEM_SERVICE}"
-            result "clear" $?
-            echo -ne "${RESULT} ${RED_TEXT_COLOR}${INFO}${COLOR_CLOSE}\n"
-            INFO=""
+            if [[ "${USE_SUDO}" == "true" ]]
+            then
+                echo -ne "\nGZ Logs ${OPERATION} ${ITEM_SERVICE} - "
+                clearGzLogSudo "${ITEM_SERVICE}"
+                result "clear" $?
+                echo -ne "${RESULT} ${RED_TEXT_COLOR}${INFO}${COLOR_CLOSE}\n"
+                INFO=""
 
-            echo -ne "\nLogs ${OPERATION} ${ITEM_SERVICE} - "
-            clearLog "${ITEM_SERVICE}"
-            result "clear" $?
-            echo -ne "${RESULT} ${RED_TEXT_COLOR}${INFO}${COLOR_CLOSE}\n"
-            INFO=""
+                echo -ne "\nLogs ${OPERATION} ${ITEM_SERVICE} - "
+                clearLogSudo "${ITEM_SERVICE}"
+                result "clear" $?
+                echo -ne "${RESULT} ${RED_TEXT_COLOR}${INFO}${COLOR_CLOSE}\n"
+                INFO=""
+            else
+                echo -ne "\nGZ Logs ${OPERATION} ${ITEM_SERVICE} - "
+                clearGzLog "${ITEM_SERVICE}"
+                result "clear" $?
+                echo -ne "${RESULT} ${RED_TEXT_COLOR}${INFO}${COLOR_CLOSE}\n"
+                INFO=""
+
+                echo -ne "\nLogs ${OPERATION} ${ITEM_SERVICE} - "
+                clearLog "${ITEM_SERVICE}"
+                result "clear" $?
+                echo -ne "${RESULT} ${RED_TEXT_COLOR}${INFO}${COLOR_CLOSE}\n"
+                INFO=""
+            fi
         fi
     done
 
